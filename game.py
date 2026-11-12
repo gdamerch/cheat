@@ -21,13 +21,21 @@ class CheatGame:
     def __init__(self, players, rng=None):
         rng = rng or random.Random()
         self.players = list(players)
+        if len(self.players) < 2 or len(set(self.players)) != len(self.players):
+            raise ValueError("need at least 2 players with unique names")
         deck = [r + s for r in RANKS for s in SUITS]
         rng.shuffle(deck)
-        self.hands = {p: [] for p in self.players}
-        for i, card in enumerate(deck):
-            self.hands[self.players[i % len(self.players)]].append(card)
-        for hand in self.hands.values():
+
+        # Fair deal: everyone gets exactly the same number of cards. When 52
+        # doesn't divide evenly, the leftover cards are set aside face down and
+        # stay out of the game, so nobody starts with an extra card.
+        per_player = len(deck) // len(self.players)
+        self.hands = {}
+        for i, p in enumerate(self.players):
+            hand = deck[i * per_player:(i + 1) * per_player]
             hand.sort(key=sort_key)
+            self.hands[p] = hand
+        self.set_aside = deck[per_player * len(self.players):]
 
         self.turn = 0            # index into self.players
         self.rank_idx = 0        # claims go A, 2, 3, ... K, A, ...
@@ -51,6 +59,8 @@ class CheatGame:
     def play(self, player, cards):
         """Play 1-4 cards face down, claiming they are all the required rank."""
         self._check_active()
+        if not isinstance(cards, list) or not all(isinstance(c, str) for c in cards):
+            raise GameError("'cards' must be a list of card strings like [\"3S\", \"10H\"]")
         if player != self.current:
             raise GameError("it's not your turn")
         if self.pending_win:
