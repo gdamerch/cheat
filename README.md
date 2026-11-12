@@ -15,7 +15,6 @@ A terminal version of the card game Cheat (also called BS or I Doubt It). One se
 | `server.py` | Listens for TCP connections and runs the game. |
 | `client.py` | Terminal client each player runs. |
 | `common.py` | Defaults and argument validation shared by server and client. |
-| `test_cheat.py` | Automated tests. |
 
 ## Running a game
 
